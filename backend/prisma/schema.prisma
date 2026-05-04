@@ -1,0 +1,34 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Link {
+  id          String      @id @default(uuid()) // Use UUIDs for unique identifiers
+  originalUrl String // The original URL to which the short code points
+  shortCode   String      @unique // The short code for the link
+  accessCount Int         @default(0) // Track the number of times the link has been accessed
+  createdAt   DateTime    @default(now()) // Track when the link was created
+  updatedAt   DateTime    @updatedAt // Track when the link was last updated
+  accesses    AccessLog[] // A list of access logs for this link
+}
+
+model AccessLog {
+  id        String   @id @default(uuid()) // Use UUIDs for unique identifiers
+  linkId    String // Foreign key to the Link model
+  ip        String? // Store the IP address of the user accessing the link
+  userAgent String? // Store the user agent string of the user's browser
+  createdAt DateTime @default(now()) // Track when the access occurred
+  updatedAt DateTime @updatedAt // Track when the access log was last updated
+
+  link Link @relation(fields: [linkId], references: [id], onDelete: Cascade) // Ensure that when a Link is deleted, its AccessLogs are also deleted
+}
